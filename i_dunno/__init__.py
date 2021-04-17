@@ -18,7 +18,7 @@ __all__ = ['encode', 'decode']
 __version__ = '0.1.3'
 
 
-utf8_lengths = [(0, 7), (8, 11), (12, 16), (17, 21)]
+utf8_lengths = [(0, 7), (7, 11), (11, 16), (16, 21)]
 
 
 confusion_constraints = {
@@ -78,7 +78,7 @@ def packed_combinations(bits, lengths):
 
         val = int.from_bytes(bits_to_bytes(bits[:length]), 'big')
 
-        if minimum > 0 and val < (1 << minimum):
+        if val < (1 << minimum):
             continue
 
         try:
@@ -147,11 +147,11 @@ def decode(i_dunno):
         num = ord(char)
 
         for minimum, length in utf8_lengths:
-            if num < (1 << length) and (minimum == 0 or num >= (1 << minimum)):
+            if (1 << minimum) <= num < (1 << length):
                 bits += int_to_bits(num, length)
                 break
         else:
-            raise ValueError('invalid I-DUNNO')
+            raise ValueError(f'invalid I-DUNNO (seen cp={num})')
 
     max_padding = max(utf8_lengths)[1] - 1
     if 128 <= len(bits) <= 128 + max_padding:
